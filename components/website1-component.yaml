@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: website1
+  description: |
+    Website1 is a website that is used to test the ASP.NET Core application.
+    - First item
+    - Second item
+  links:
+    - url: https://gitlab.nexdev.net/gitlab-sentry/zdemogroup/aspnetcore.dockersample
+      title: GitLab Repository
+      icon: gitlab
+  tags:
+    - website1
+spec:
+  type: website
+  lifecycle: experimental
+  owner: team1
+  system: sample
+  providesApis:
+    - website1

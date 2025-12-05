@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: example-organization
+  description: A collection of all example organizations
+spec:
+  targets:
+    - ./organizations/org1.yaml

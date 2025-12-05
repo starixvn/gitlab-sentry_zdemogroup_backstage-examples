@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: example-systems
+  description: A collection of all example systems
+spec:
+  targets:
+    - ./systems/sample-system.yaml

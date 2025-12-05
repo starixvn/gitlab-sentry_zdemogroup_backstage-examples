@@ -1,0 +1,641 @@
+openapi: 3.0.4
+info:
+  title: Website1 API
+  version: 1.0.0
+  description: |
+    API for the Website1 application. This is a sample OpenAPI 3.0 specification
+    demonstrating common REST API patterns and best practices.
+  contact:
+    name: API Support
+    email: support@website1.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://website1.com/api/v1
+    description: Production server
+  - url: https://staging.website1.com/api/v1
+    description: Staging server
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+
+tags:
+  - name: Users
+    description: User management operations
+  - name: Products
+    description: Product catalog operations
+  - name: Health
+    description: Health check and system status
+
+paths:
+  /:
+    get:
+      summary: Get the home page
+      description: Returns the home page of the application
+      tags:
+        - Health
+      responses:
+        '200':
+          description: OK
+          content:
+            text/html:
+              schema:
+                type: string
+                example: "<html>Welcome to Website1</html>"
+
+  /health:
+    get:
+      summary: Health check
+      description: Check the health status of the API
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: "healthy"
+                timestamp: "2024-01-15T10:30:00Z"
+                version: "1.0.0"
+
+  /users:
+    get:
+      summary: List all users
+      description: Retrieve a list of all users with optional filtering and pagination
+      tags:
+        - Users
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Search term to filter users by name or email
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                data:
+                  - id: 1
+                    name: "John Doe"
+                    email: "john.doe@example.com"
+                    role: "user"
+                    createdAt: "2024-01-01T00:00:00Z"
+                  - id: 2
+                    name: "Jane Smith"
+                    email: "jane.smith@example.com"
+                    role: "admin"
+                    createdAt: "2024-01-02T00:00:00Z"
+                pagination:
+                  page: 1
+                  pageSize: 10
+                  totalItems: 2
+                  totalPages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create a new user
+      description: Create a new user account
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              name: "John Doe"
+              email: "john.doe@example.com"
+              password: "SecurePassword123!"
+              role: "user"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                name: "John Doe"
+                email: "john.doe@example.com"
+                role: "user"
+                createdAt: "2024-01-15T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Conflict"
+                message: "A user with this email already exists"
+                code: "USER_ALREADY_EXISTS"
+
+  /users/{userId}:
+    get:
+      summary: Get user by ID
+      description: Retrieve a specific user by their ID
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                name: "John Doe"
+                email: "john.doe@example.com"
+                role: "user"
+                createdAt: "2024-01-01T00:00:00Z"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update user
+      description: Update an existing user's information
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              name: "John Updated"
+              email: "john.updated@example.com"
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete user
+      description: Delete a user by ID
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /products:
+    get:
+      summary: List all products
+      description: Retrieve a list of all products
+      tags:
+        - Products
+      parameters:
+        - name: category
+          in: query
+          description: Filter products by category
+          required: false
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          description: Minimum price filter
+          required: false
+          schema:
+            type: number
+            format: decimal
+            minimum: 0
+        - name: maxPrice
+          in: query
+          description: Maximum price filter
+          required: false
+          schema:
+            type: number
+            format: decimal
+            minimum: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+              example:
+                data:
+                  - id: 1
+                    name: "Sample Product"
+                    description: "A sample product description"
+                    price: 29.99
+                    category: "Electronics"
+                    inStock: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    post:
+      summary: Create a new product
+      description: Create a new product in the catalog
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+            example:
+              name: "New Product"
+              description: "Description of the new product"
+              price: 49.99
+              category: "Electronics"
+              inStock: true
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /products/{productId}:
+    get:
+      summary: Get product by ID
+      description: Retrieve a specific product by its ID
+      tags:
+        - Products
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: The unique identifier of the product
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the user
+          example: 1
+        name:
+          type: string
+          description: Full name of the user
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: Email address of the user
+          example: "john.doe@example.com"
+        role:
+          type: string
+          enum: [user, admin, moderator]
+          description: Role of the user
+          example: "user"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+          example: "2024-01-01T00:00:00Z"
+
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Password must be at least 8 characters long
+          example: "SecurePassword123!"
+        role:
+          type: string
+          enum: [user, admin, moderator]
+          default: user
+          example: "user"
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "John Updated"
+        email:
+          type: string
+          format: email
+          example: "john.updated@example.com"
+        role:
+          type: string
+          enum: [user, admin, moderator]
+          example: "admin"
+
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - category
+        - inStock
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the product
+          example: 1
+        name:
+          type: string
+          description: Name of the product
+          example: "Sample Product"
+        description:
+          type: string
+          description: Detailed description of the product
+          example: "A sample product description"
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Price of the product
+          example: 29.99
+        category:
+          type: string
+          description: Category of the product
+          example: "Electronics"
+        inStock:
+          type: boolean
+          description: Whether the product is currently in stock
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the product was created
+          example: "2024-01-01T00:00:00Z"
+
+    CreateProductRequest:
+      type: object
+      required:
+        - name
+        - price
+        - category
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: "New Product"
+        description:
+          type: string
+          maxLength: 1000
+          example: "Description of the new product"
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 49.99
+        category:
+          type: string
+          example: "Electronics"
+        inStock:
+          type: boolean
+          default: true
+          example: true
+
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy, degraded]
+          description: Health status of the service
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the health check
+          example: "2024-01-15T10:30:00Z"
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+        uptime:
+          type: integer
+          description: Uptime in seconds
+          example: 3600
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - pageSize
+        - totalItems
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+          example: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          description: Number of items per page
+          example: 10
+        totalItems:
+          type: integer
+          minimum: 0
+          description: Total number of items
+          example: 100
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 10
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type or code
+          example: "BadRequest"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid request parameters"
+        code:
+          type: string
+          description: Application-specific error code
+          example: "INVALID_PARAMETER"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+          description: Additional error details
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "BadRequest"
+            message: "Invalid request parameters"
+            code: "INVALID_PARAMETER"
+            details:
+              - field: "email"
+                message: "Invalid email format"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "NotFound"
+            message: "The requested resource was not found"
+            code: "RESOURCE_NOT_FOUND"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "InternalServerError"
+            message: "An unexpected error occurred"
+            code: "INTERNAL_ERROR"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token authentication
+
+security:
+  - BearerAuth: []

@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: website1
+  description: The website1 API
+  tags:
+    - website1
+    - rest
+  links:
+    - url: https://gitlab.nexdev.net/gitlab-sentry/zdemogroup/aspnetcore.dockersample
+      title: GitLab Repository
+      icon: gitlab
+    - url: https://gitlab.nexdev.net/gitlab-sentry/zdemogroup/backstage-examples/-/blob/main/apis/website1.oas.yaml
+      title: API Spec
+      icon: code
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: team1
+  system: sample
+  definition:
+    $text: ./website1.oas.yaml

@@ -1,0 +1,27 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: org1
+  description: The org1 organization
+  links:
+    - url: http://www.nexcel-solutions.com/
+      title: Website
+    - url: https://www.nexcel-solutions.com/
+      title: Intranet
+spec:
+  type: organization
+  profile:
+    displayName: Org1
+    email: org1@example.com
+  children: [dept1]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: org1-groups
+  description: A collection of all Org1 Groups
+spec:
+  targets:
+    - ./dept1-department.yaml
+    - ./team1-team.yaml
+    - ./team2-team.yaml

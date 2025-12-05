@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: sample
+  description: Everything related to sample
+  tags:
+    - sample
+spec:
+  owner: team1
+  domain: sample
+  type: service
